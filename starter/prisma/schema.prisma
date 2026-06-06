@@ -1,0 +1,41 @@
+// Prisma schema — multi-channel lead campaign app
+// Local dev uses SQLite. For production, switch `provider` to "postgresql"
+// and set DATABASE_URL to your Postgres connection string.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String?  @unique // nullable: WhatsApp/DM leads may have no email
+  phone     String? // E.164, e.g. +14155551234 (for WhatsApp)
+  psid      String? // Messenger / Instagram-scoped user id (for DM replies)
+  channel   String   @default("email") // how we REACH them: email | whatsapp | messenger | instagram
+  source    String? // where they came FROM: homepage | facebook | instagram | whatsapp
+  tags      String? // comma-separated
+  status    String   @default("new") // new | engaged | converted | unsubscribed
+  createdAt DateTime @default(now())
+  events    Event[]
+
+  @@index([phone])
+  @@index([psid])
+}
+
+model Event {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  channel   String // email | whatsapp | messenger | instagram
+  type      String // sent | opened | clicked | replied | converted
+  step      String // welcome | value | offer | inbound
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+}

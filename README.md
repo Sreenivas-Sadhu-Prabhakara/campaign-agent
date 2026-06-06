@@ -1,62 +1,59 @@
-# The Lead Engine — AI Email Campaign Field Guide
+# The Lead Engine — Multi-Channel Lead-Gen Campaign App + Build Guide
 
-A single-page, copy-paste field guide for building a **custom lead-generation email campaign app** using **Claude, OpenAI Codex/ChatGPT, Google Gemini, and Microsoft Copilot**.
+The **exact, optimal, ready-to-run** way to build a custom lead-generation
+campaign app across **email, WhatsApp, Facebook, and Instagram** — with
+copy-paste commands and AI prompts for Claude, Codex/ChatGPT, Gemini & Copilot.
 
-It's a self-contained `index.html` (no build step, no dependencies) designed to be hosted on **GitHub Pages**.
+This repo has two parts:
 
-## Features
+| Part | Path | What it is |
+|------|------|-----------|
+| 📖 **The guide** | [`index.html`](./index.html) | A polished, copy-paste field guide (hosted on GitHub Pages) |
+| 🛠 **The app** | [`starter/`](./starter) | The actual runnable app — **build-verified** |
 
-- 📋 **20+ copyable prompts** — every code/prompt block has a one-click copy button
-- 🧭 **Sticky scrollspy navigation** that highlights your place
-- 🗂️ **Interactive tool tabs** for Claude / Codex / Gemini / Copilot
-- ✅ **Launch checklist** with progress saved in your browser
-- 🔍 **Filterable prompt library**
-- 🌗 **Dark / light theme** (remembers your choice, respects system setting)
-- 📊 Reading-progress bar, back-to-top, mobile nav, print-friendly
-- ♿ Responsive and accessible
+**Live guide:** https://sreenivas-sadhu-prabhakara.github.io/campaign-agent/
 
-## Files
+## What the app does
 
-| File | Purpose |
-|------|---------|
-| `index.html` | The complete guide (open it directly in a browser) |
-| `HOW-TO-build-lead-gen-email-app-with-AI.md` | The same content in plain Markdown |
-| `README.md` | This file |
-
-## Preview locally
-
-Just open the file:
-
-```bash
-open index.html        # macOS
-# or serve it:
-python3 -m http.server 8000   # then visit http://localhost:8000
+```
+CAPTURE                         NURTURE (auto)            MEASURE
+Website form ──┐
+Facebook Lead Ad ──┤            Day 0  Welcome
+Instagram Lead Ad ─┼─▶ Lead ──▶ Day 2  Value     ──▶ opens · clicks
+WhatsApp message ──┤   (DB)     Day 5  Offer          replies · status
+Messenger / IG DM ─┘            routed per channel    ──▶ Dashboard
 ```
 
-## Deploy to GitHub Pages
+- One web form (email and/or WhatsApp) with honeypot spam protection
+- **One Meta webhook** for FB/IG Lead Ads, WhatsApp, and Messenger/IG DMs
+- Channel-aware drip (sends each step on the lead's own channel, never double-sends)
+- Email open/click tracking, one-click unsubscribe, and a dashboard with per-channel metrics
+- All campaign copy in a single file (`starter/lib/content.ts`)
 
-### Option A — Web UI
+Tech: **Next.js 15 · TypeScript · Prisma · Resend · Meta Graph + WhatsApp Cloud API · Vercel.**
 
-```bash
-git init
-git add .
-git commit -m "Add Lead Engine field guide"
-git branch -M main
-git remote add origin https://github.com/<you>/lead-engine-guide.git
-git push -u origin main
-```
-
-Then on GitHub: **Settings → Pages → Source: Deploy from a branch → Branch: `main` / `(root)` → Save.**
-Your site goes live at `https://<you>.github.io/lead-engine-guide/`.
-
-### Option B — GitHub CLI (one shot)
+## Run the app (5 commands)
 
 ```bash
-gh repo create lead-engine-guide --public --source=. --push
-gh api -X POST repos/:owner/lead-engine-guide/pages -f source[branch]=main -f source[path]=/
+cd starter
+npm install
+cp .env.example .env        # add RESEND_API_KEY + EMAIL_FROM
+npx prisma db push
+npm run dev                 # http://localhost:3000
 ```
 
-> GitHub Pages serves `index.html` as the homepage automatically — keep that filename.
+Full instructions, the Meta setup, and deployment are in [`starter/README.md`](./starter/README.md)
+and on the [live guide](https://sreenivas-sadhu-prabhakara.github.io/campaign-agent/).
+
+## Update the hosted guide
+
+Edit `index.html`, then:
+
+```bash
+git add -A && git commit -m "Update guide" && git push
+```
+
+GitHub Pages redeploys automatically in ~1 minute.
 
 ## License
 
