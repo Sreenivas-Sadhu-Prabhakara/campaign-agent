@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Lead Engine — Build an AI-Powered Email Campaign App</title>
+<meta name="description" content="A practical field guide to building a custom lead-generation email campaign app using Claude, OpenAI Codex/ChatGPT, Google Gemini, and Microsoft Copilot. Copy-paste prompts included." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400&family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  /* ============================ THEME TOKENS ============================ */
+  :root {
+    --bg: #f6f1e7;
+    --bg-soft: #efe8d8;
+    --surface: #fffdf8;
+    --surface-2: #f3ecdd;
+    --ink: #211b13;
+    --ink-soft: #5d5340;
+    --ink-faint: #8a7d63;
+    --line: #e2d8c2;
+    --line-strong: #d3c6a9;
+    --accent: #bf4324;        /* terracotta */
+    --accent-soft: #f4ddd3;
+    --accent-2: #1d6b56;      /* forest teal */
+    --accent-2-soft: #d9ebe4;
+    --gold: #a9791b;
+    --shadow: 0 1px 2px rgba(33,27,19,.05), 0 8px 24px rgba(33,27,19,.06);
+    --shadow-lg: 0 20px 50px -20px rgba(33,27,19,.35);
+    --radius: 14px;
+    --radius-sm: 9px;
+    --maxw: 760px;
+    --sidebar: 300px;
+    --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: 'Hanken Grotesk', system-ui, sans-serif;
+    --serif: 'Fraunces', Georgia, serif;
+  }
+  [data-theme="dark"] {
+    --bg: #14110b;
+    --bg-soft: #1b1710;
+    --surface: #211c14;
+    --surface-2: #272015;
+    --ink: #f0e9da;
+    --ink-soft: #b6aa90;
+    --ink-faint: #847962;
+    --line: #342c1d;
+    --line-strong: #463b27;
+    --accent: #ec7350;
+    --accent-soft: #3a241b;
+    --accent-2: #56bf9f;
+    --accent-2-soft: #16302a;
+    --gold: #d8af55;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+    --shadow-lg: 0 24px 60px -20px rgba(0,0,0,.7);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { animation: none !important; transition: none !important; } }
+
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    transition: background .4s ease, color .4s ease;
+  }
+  /* subtle paper grain via layered radial dots */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 0;
+    background-image: radial-gradient(var(--line) .5px, transparent .5px);
+    background-size: 22px 22px;
+    opacity: .35;
+  }
+  [data-theme="dark"] body::before { opacity: .25; }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+  /* ============================ PROGRESS BAR ============================ */
+  #progress {
+    position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--gold), var(--accent-2));
+    z-index: 200; transition: width .1s linear;
+  }
+
+  /* ============================ TOPBAR (mobile) ============================ */
+  .topbar {
+    display: none;
+    position: sticky; top: 0; z-index: 90;
+    align-items: center; justify-content: space-between;
+    padding: 12px 16px;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar .brand-mini { font-family: var(--serif); font-weight: 600; font-size: 18px; }
+  .icon-btn {
+    appearance: none; border: 1px solid var(--line-strong); background: var(--surface);
+    color: var(--ink); width: 40px; height: 40px; border-radius: 10px; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 18px;
+    transition: transform .15s ease, border-color .2s ease;
+  }
+  .icon-btn:hover { transform: translateY(-1px); border-color: var(--accent); }
+
+  /* ============================ LAYOUT ============================ */
+  .layout { display: flex; position: relative; z-index: 1; }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar {
+    width: var(--sidebar); flex: 0 0 var(--sidebar);
+    position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 28px 22px 40px;
+    border-right: 1px solid var(--line);
+    background: linear-gradient(180deg, var(--bg-soft), var(--bg));
+  }
+  .sidebar::-webkit-scrollbar { width: 8px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 8px; }
+
+  .brand { display: flex; align-items: center; gap: 11px; margin-bottom: 6px; }
+  .brand .mark {
+    width: 40px; height: 40px; border-radius: 11px; flex: 0 0 40px;
+    background: radial-gradient(circle at 30% 25%, var(--accent), #8e2e16);
+    color: #fff; display: grid; place-items: center;
+    font-family: var(--serif); font-weight: 700; font-size: 22px;
+    box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  .brand .mark::after { content:""; position:absolute; inset:0; background:linear-gradient(140deg, rgba(255,255,255,.35), transparent 55%); }
+  .brand .name { font-family: var(--serif); font-weight: 600; font-size: 19px; line-height: 1.1; }
+  .brand .sub { font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); }
+
+  .side-tools { display: flex; gap: 8px; margin: 18px 0 22px; }
+  .pill {
+    flex: 1; appearance: none; cursor: pointer;
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-soft);
+    border-radius: 10px; padding: 9px; font-family: var(--sans); font-size: 12.5px; font-weight: 600;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    transition: all .2s ease;
+  }
+  .pill:hover { border-color: var(--accent); color: var(--ink); transform: translateY(-1px); }
+
+  .toc { list-style: none; margin: 0; padding: 0; }
+  .toc .toc-num { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); margin-right: 9px; }
+  .toc a {
+    display: flex; align-items: baseline; gap: 2px;
+    padding: 7px 11px; border-radius: 8px; color: var(--ink-soft);
+    font-size: 13.5px; font-weight: 500; line-height: 1.35;
+    border-left: 2px solid transparent; transition: all .18s ease;
+  }
+  .toc a:hover { background: var(--surface); color: var(--ink); text-decoration: none; }
+  .toc a.active {
+    color: var(--accent); background: var(--accent-soft);
+    border-left-color: var(--accent); font-weight: 600;
+  }
+  .toc a.active .toc-num { color: var(--accent); }
+
+  .side-foot { margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-faint); }
+
+  /* ---------- Main ---------- */
+  .main { flex: 1 1 auto; min-width: 0; }
+  .container { max-width: var(--maxw); margin: 0 auto; padding: 0 28px 120px; }
+
+  /* ============================ HERO ============================ */
+  .hero {
+    position: relative; overflow: hidden;
+    padding: 84px 28px 64px;
+    border-bottom: 1px solid var(--line);
+    background:
+      radial-gradient(70% 120% at 88% 0%, var(--accent-soft) 0%, transparent 55%),
+      radial-gradient(50% 90% at 0% 100%, var(--accent-2-soft) 0%, transparent 60%);
+  }
+  .hero-inner { max-width: var(--maxw); margin: 0 auto; position: relative; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--accent-2); background: var(--accent-2-soft);
+    padding: 6px 12px; border-radius: 100px; margin-bottom: 22px; font-weight: 500;
+  }
+  .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-2); animation: pulse 2.4s infinite; }
+  @keyframes pulse { 0%,100%{ opacity:1; transform:scale(1);} 50%{ opacity:.4; transform:scale(.7);} }
+
+  h1.title {
+    font-family: var(--serif); font-weight: 600;
+    font-size: clamp(38px, 6vw, 66px); line-height: 1.02;
+    letter-spacing: -.02em; margin: 0 0 20px;
+  }
+  h1.title em { font-style: italic; color: var(--accent); font-weight: 500; }
+  .lede { font-size: clamp(17px, 2.2vw, 20px); color: var(--ink-soft); max-width: 600px; margin: 0 0 30px; }
+  .hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 34px; }
+  .btn {
+    appearance: none; cursor: pointer; font-family: var(--sans); font-weight: 600; font-size: 15px;
+    padding: 13px 22px; border-radius: 100px; border: 1px solid transparent;
+    display: inline-flex; align-items: center; gap: 9px; transition: all .2s ease;
+  }
+  .btn-primary { background: var(--accent); color: #fff; box-shadow: var(--shadow); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); text-decoration: none; }
+  .btn-ghost { background: var(--surface); color: var(--ink); border-color: var(--line-strong); }
+  .btn-ghost:hover { border-color: var(--accent); transform: translateY(-2px); text-decoration: none; }
+
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 22px; font-size: 13px; color: var(--ink-faint); font-family: var(--mono); }
+  .hero-meta span { display: inline-flex; align-items: center; gap: 7px; }
+
+  /* ============================ SECTIONS ============================ */
+  section { padding-top: 64px; }
+  .sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; }
+  .sec-num {
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    color: #fff; background: var(--accent); padding: 3px 9px; border-radius: 7px;
+    flex: 0 0 auto; transform: translateY(-3px);
+  }
+  h2 { font-family: var(--serif); font-weight: 600; font-size: clamp(27px, 3.6vw, 36px); letter-spacing: -.015em; line-height: 1.12; margin: 0; }
+  h3 { font-family: var(--serif); font-weight: 600; font-size: 21px; margin: 38px 0 12px; letter-spacing: -.01em; }
+  h4 { font-family: var(--sans); font-weight: 700; font-size: 15px; letter-spacing: .01em; margin: 26px 0 8px; }
+  p { margin: 14px 0; }
+  .muted { color: var(--ink-soft); }
+  .section-intro { font-size: 17px; color: var(--ink-soft); margin-top: 14px; }
+  strong { font-weight: 700; color: var(--ink); }
+
+  ul, ol { padding-left: 22px; }
+  li { margin: 7px 0; }
+  li::marker { color: var(--accent); }
+
+  /* ============================ CODE / PROMPT BLOCKS ============================ */
+  .codewrap { position: relative; margin: 20px 0; }
+  .codewrap .label {
+    position: absolute; top: 0; left: 16px; transform: translateY(-50%);
+    font-family: var(--mono); font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 100px; z-index: 2;
+  }
+  .label-bash { background: var(--ink); color: var(--bg); }
+  .label-prompt { background: var(--accent-2); color: #fff; }
+  .label-code { background: var(--gold); color: #1a1304; }
+  pre {
+    margin: 0; padding: 26px 18px 18px; overflow-x: auto;
+    background: var(--surface); border: 1px solid var(--line-strong);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    font-family: var(--mono); font-size: 13px; line-height: 1.6; color: var(--ink);
+    white-space: pre; tab-size: 2;
+  }
+  pre.prompt { background: linear-gradient(180deg, var(--accent-2-soft), var(--surface)); border-color: color-mix(in srgb, var(--accent-2) 35%, var(--line-strong)); white-space: pre-wrap; }
+  pre::-webkit-scrollbar { height: 8px; }
+  pre::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 8px; }
+  .copy-btn {
+    position: absolute; top: 11px; right: 11px; z-index: 3;
+    appearance: none; cursor: pointer; font-family: var(--mono); font-size: 11px; font-weight: 600;
+    color: var(--ink-soft); background: var(--surface-2); border: 1px solid var(--line-strong);
+    padding: 6px 11px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;
+    transition: all .18s ease;
+  }
+  .copy-btn:hover { color: var(--ink); border-color: var(--accent); transform: translateY(-1px); }
+  .copy-btn.copied { color: #fff; background: var(--accent-2); border-color: var(--accent-2); }
+
+  code:not(pre code) {
+    font-family: var(--mono); font-size: .88em; background: var(--surface-2);
+    border: 1px solid var(--line); padding: 1px 6px; border-radius: 6px; color: var(--accent);
+  }
+
+  /* ============================ CARDS / GRIDS ============================ */
+  .grid { display: grid; gap: 14px; margin: 22px 0; }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .card {
+    background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--radius);
+    padding: 18px 18px 16px; box-shadow: var(--shadow); transition: transform .2s ease, border-color .2s ease;
+  }
+  .card:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .card .ico { font-size: 22px; margin-bottom: 8px; }
+  .card h4 { margin: 0 0 5px; font-size: 15px; }
+  .card p { margin: 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.5; }
+
+  /* callout */
+  .callout {
+    display: flex; gap: 13px; margin: 22px 0; padding: 16px 18px;
+    background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+    border-left: 4px solid var(--accent); border-radius: var(--radius-sm);
+  }
+  .callout.tip { background: var(--accent-2-soft); border-color: color-mix(in srgb, var(--accent-2) 30%, var(--line)); border-left-color: var(--accent-2); }
+  .callout .ci { font-size: 20px; flex: 0 0 auto; }
+  .callout p { margin: 0; font-size: 14.5px; }
+  .callout strong { color: var(--ink); }
+
+  /* ============================ TABLES ============================ */
+  .table-wrap { overflow-x: auto; margin: 22px 0; border: 1px solid var(--line-strong); border-radius: var(--radius); box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 520px; }
+  thead th {
+    text-align: left; padding: 13px 16px; background: var(--surface-2);
+    font-family: var(--sans); font-weight: 700; font-size: 12.5px; letter-spacing: .03em;
+    border-bottom: 2px solid var(--line-strong); color: var(--ink);
+  }
+  tbody td { padding: 12px 16px; border-bottom: 1px solid var(--line); color: var(--ink-soft); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr { background: var(--surface); transition: background .15s ease; }
+  tbody tr:hover { background: var(--surface-2); }
+  td strong { color: var(--ink); }
+
+  /* ============================ TOOL TABS ============================ */
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0 18px; }
+  .tab {
+    appearance: none; cursor: pointer; font-family: var(--sans); font-weight: 600; font-size: 14px;
+    padding: 11px 16px; border-radius: 11px; border: 1px solid var(--line-strong);
+    background: var(--surface); color: var(--ink-soft);
+    display: inline-flex; align-items: center; gap: 9px; transition: all .2s ease;
+  }
+  .tab .tlogo { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #fff; }
+  .tab:hover { transform: translateY(-2px); border-color: var(--accent); color: var(--ink); }
+  .tab.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .tab.active .tname { color: var(--bg); }
+  .tabpanel { display: none; animation: fade .35s ease; }
+  .tabpanel.active { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .tool-banner {
+    display: flex; align-items: center; gap: 14px; padding: 16px 18px; margin-bottom: 8px;
+    border-radius: var(--radius); border: 1px solid var(--line-strong); background: var(--surface-2);
+  }
+  .tool-banner .big-logo { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; font-weight: 700; color: #fff; font-size: 16px; flex: 0 0 46px; }
+  .tool-banner h3 { margin: 0; }
+  .tool-banner p { margin: 2px 0 0; font-size: 13.5px; color: var(--ink-soft); }
+  .steps { counter-reset: step; list-style: none; padding: 0; margin: 18px 0; }
+  .steps > li {
+    counter-increment: step; position: relative; padding-left: 44px; margin: 0 0 18px; min-height: 30px;
+  }
+  .steps > li::before {
+    content: counter(step); position: absolute; left: 0; top: -2px;
+    width: 30px; height: 30px; border-radius: 9px; background: var(--accent); color: #fff;
+    font-family: var(--mono); font-weight: 600; font-size: 14px; display: grid; place-items: center;
+    box-shadow: var(--shadow);
+  }
+  .steps strong { display: block; margin-bottom: 2px; }
+
+  /* ============================ CHECKLIST ============================ */
+  .checklist { list-style: none; padding: 0; margin: 18px 0; }
+  .checklist li { margin: 0; }
+  .checklist label {
+    display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; cursor: pointer;
+    border: 1px solid var(--line); border-radius: var(--radius-sm); margin-bottom: 8px;
+    background: var(--surface); transition: all .18s ease; font-size: 14.5px;
+  }
+  .checklist label:hover { border-color: var(--accent-2); }
+  .checklist input { display: none; }
+  .checklist .box {
+    flex: 0 0 22px; width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--line-strong);
+    display: grid; place-items: center; transition: all .18s ease; margin-top: 1px; font-size: 13px; color: transparent;
+  }
+  .checklist input:checked + .box { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
+  .checklist input:checked ~ .ctext { color: var(--ink-faint); text-decoration: line-through; }
+  .checklist .ctext { transition: color .18s ease; }
+  .progress-note { font-family: var(--mono); font-size: 12.5px; color: var(--ink-faint); margin: 4px 0 14px; }
+  .reset-link { background: none; border: none; color: var(--accent); cursor: pointer; font-family: var(--mono); font-size: 12px; padding: 0; text-decoration: underline; }
+
+  /* ============================ FILE TREE / DIAGRAM ============================ */
+  .ascii { font-family: var(--mono); font-size: 12.5px; line-height: 1.55; }
+
+  /* prompt library filter */
+  .lib-search {
+    width: 100%; padding: 13px 16px; font-family: var(--sans); font-size: 15px;
+    border: 1px solid var(--line-strong); border-radius: 11px; background: var(--surface); color: var(--ink);
+    margin: 6px 0 18px;
+  }
+  .lib-search:focus { outline: none; border-color: var(--accent); }
+  .lib-card { margin-bottom: 16px; }
+  .lib-card[hidden] { display: none; }
+  .lib-card h4 { margin: 0 0 8px; display: flex; align-items: center; gap: 9px; }
+  .lib-card h4 .tag { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; background: var(--gold); color: #1a1304; padding: 2px 8px; border-radius: 100px; }
+
+  /* ============================ FOOTER ============================ */
+  footer {
+    border-top: 1px solid var(--line); margin-top: 70px; padding: 40px 28px 60px; text-align: center; color: var(--ink-faint); font-size: 13.5px;
+  }
+  footer .fbrand { font-family: var(--serif); font-size: 20px; color: var(--ink); margin-bottom: 8px; }
+
+  /* back to top */
+  #toTop {
+    position: fixed; bottom: 24px; right: 24px; z-index: 80; opacity: 0; pointer-events: none;
+    width: 46px; height: 46px; border-radius: 13px; border: 1px solid var(--line-strong);
+    background: var(--accent); color: #fff; font-size: 19px; cursor: pointer; box-shadow: var(--shadow-lg);
+    transition: opacity .25s ease, transform .2s ease;
+  }
+  #toTop.show { opacity: 1; pointer-events: auto; }
+  #toTop:hover { transform: translateY(-3px); }
+
+  /* scrim for mobile sidebar */
+  .scrim { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 95; }
+
+  /* ============================ RESPONSIVE ============================ */
+  @media (max-width: 940px) {
+    .topbar { display: flex; }
+    .scrim.open { display: block; }
+    .sidebar {
+      position: fixed; top: 0; left: 0; z-index: 96; height: 100vh; width: 300px;
+      transform: translateX(-105%); transition: transform .3s ease; box-shadow: var(--shadow-lg);
+    }
+    .sidebar.open { transform: translateX(0); }
+    .hero { padding: 48px 20px 44px; }
+    .container { padding: 0 20px 90px; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 520px) {
+    .hero-cta { flex-direction: column; align-items: stretch; }
+    .btn { justify-content: center; }
+  }
+  @media print {
+    .sidebar, .topbar, .copy-btn, #toTop, .hero-cta, .side-tools { display: none !important; }
+    .main { width: 100%; } body::before { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<!-- Mobile topbar -->
+<div class="topbar">
+  <span class="brand-mini">The Lead Engine</span>
+  <button class="icon-btn" id="menuBtn" aria-label="Open menu">☰</button>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<div class="layout">
+  <!-- ============================ SIDEBAR ============================ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="mark">L</div>
+      <div>
+        <div class="name">The Lead Engine</div>
+        <div class="sub">AI Build Field Guide</div>
+      </div>
+    </div>
+
+    <div class="side-tools">
+      <button class="pill" id="themeBtn"><span id="themeIcon">🌙</span> <span id="themeLabel">Dark</span></button>
+      <button class="pill" id="printBtn">🖨 Print</button>
+    </div>
+
+    <nav>
+      <ul class="toc" id="toc">
+        <li><a href="#start"><span class="toc-num">00</span> Start here</a></li>
+        <li><a href="#build"><span class="toc-num">01</span> What you're building</a></li>
+        <li><a href="#choose"><span class="toc-num">02</span> Choose your AI</a></li>
+        <li><a href="#prereq"><span class="toc-num">03</span> Prerequisites</a></li>
+        <li><a href="#master"><span class="toc-num">04</span> The master prompt</a></li>
+        <li><a href="#tools"><span class="toc-num">05</span> Build it, tool by tool</a></li>
+        <li><a href="#blueprint"><span class="toc-num">06</span> The app blueprint</a></li>
+        <li><a href="#copy"><span class="toc-num">07</span> Writing the emails</a></li>
+        <li><a href="#compliance"><span class="toc-num">08</span> Compliance & deliverability</a></li>
+        <li><a href="#checklist"><span class="toc-num">09</span> Launch checklist</a></li>
+        <li><a href="#library"><span class="toc-num">10</span> Prompt library</a></li>
+        <li><a href="#host"><span class="toc-num">11</span> Host on GitHub Pages</a></li>
+      </ul>
+    </nav>
+
+    <div class="side-foot">
+      A free, copy-paste field guide.<br />Built to be forked, edited &amp; shipped.
+    </div>
+  </aside>
+
+  <!-- ============================ MAIN ============================ -->
+  <main class="main">
+    <header class="hero" id="start">
+      <div class="hero-inner">
+        <span class="eyebrow"><span class="dot"></span> Field Guide · Updated June 2026</span>
+        <h1 class="title">Build a custom <em>lead-gen</em> email app with AI</h1>
+        <p class="lede">A practical, copy-paste playbook for turning Claude, OpenAI Codex / ChatGPT, Google Gemini, and Microsoft Copilot into a team that builds your email campaign app — and writes the emails that convert.</p>
+        <div class="hero-cta">
+          <a href="#master" class="btn btn-primary">⚡ Grab the master prompt</a>
+          <a href="#tools" class="btn btn-ghost">Pick a tool →</a>
+        </div>
+        <div class="hero-meta">
+          <span>📖 ~15 min read</span>
+          <span>🛠 4 AI assistants</span>
+          <span>📋 20+ copyable prompts</span>
+          <span>🚀 No experience required</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="container">
+
+      <!-- 01 WHAT YOU'RE BUILDING -->
+      <section id="build">
+        <div class="sec-head"><span class="sec-num">01</span><h2>What you're building</h2></div>
+        <p class="section-intro">A lightweight web app that runs lead-generation email campaigns — it captures visitors as leads, nurtures them with an automated email sequence, and shows you what's converting. Here's the engine, part by part:</p>
+
+        <div class="grid grid-2">
+          <div class="card"><div class="ico">🎯</div><h4>Landing page + capture form</h4><p>A focused page with one job: turn a visitor into an email address.</p></div>
+          <div class="card"><div class="ico">🗂️</div><h4>Lead database</h4><p>Every contact with source, tags, and status — new, engaged, converted, unsubscribed.</p></div>
+          <div class="card"><div class="ico">✉️</div><h4>Email templates</h4><p>Reusable welcome / value / offer emails with merge tags like <code>{{name}}</code>.</p></div>
+          <div class="card"><div class="ico">⏱️</div><h4>Drip automation</h4><p>Day 0 → 2 → 5 follow-ups that warm a cold signup without you lifting a finger.</p></div>
+          <div class="card"><div class="ico">📊</div><h4>Tracking</h4><p>Opens, clicks, and conversions so you know exactly what's working.</p></div>
+          <div class="card"><div class="ico">📈</div><h4>Dashboard</h4><p>Lead count, conversion rate, and your best-performing email at a glance.</p></div>
+        </div>
+
+        <h3>Recommended starter stack</h3>
+        <p>Easy for any AI to generate and for you to deploy. Swap any layer — just say so in your prompt.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Layer</th><th>Pick</th><th>Why</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Frontend</strong></td><td>Next.js (React) + Tailwind</td><td>Fast, every AI knows it well</td></tr>
+              <tr><td><strong>Backend</strong></td><td>Next.js API routes</td><td>No separate server to manage</td></tr>
+              <tr><td><strong>Database</strong></td><td>SQLite → Postgres</td><td>SQLite locally, Supabase/Neon in prod</td></tr>
+              <tr><td><strong>Email</strong></td><td>Resend / SendGrid / SES</td><td>Simple APIs, generous free tiers</td></tr>
+              <tr><td><strong>Hosting</strong></td><td>Vercel / Netlify</td><td>One-click deploy for Next.js</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout tip"><span class="ci">💡</span><p><strong>No-code path:</strong> Prefer zero setup? Tell the AI to "build this as a single self-contained HTML file that posts to a Google Sheet or Airtable." Every tool here can do that too.</p></div>
+      </section>
+
+      <!-- 02 CHOOSE -->
+      <section id="choose">
+        <div class="sec-head"><span class="sec-num">02</span><h2>Choose your AI assistant</h2></div>
+        <p class="section-intro">You don't need all four. Pick one as your <strong>driver</strong> to build the app, and use the others for a second opinion or their specific strengths.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Assistant</th><th>Best at</th><th>Runs in</th><th>Cost</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Claude</strong> (Claude Code)</td><td>Building &amp; running the whole project; fixes its own errors</td><td>CLI, IDE, web</td><td>Pro/Max or API</td></tr>
+              <tr><td><strong>ChatGPT + Codex</strong></td><td>Deep reasoning + a CLI/cloud agent that opens PRs</td><td>App, CLI, IDE</td><td>Plus/Pro or API</td></tr>
+              <tr><td><strong>Google Gemini</strong></td><td>Free tier, huge context, paste-a-screenshot multimodal</td><td>CLI, AI Studio, web</td><td>Generous free tier</td></tr>
+              <tr><td><strong>Microsoft Copilot</strong></td><td>In-editor autocomplete + drafting emails in Outlook/Word</td><td>VS Code, M365</td><td>Copilot sub</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Rule of thumb</h3>
+        <div class="grid grid-2">
+          <div class="card"><div class="ico">🤖</div><h4>Build the whole app for me</h4><p>Use <strong>Claude Code</strong> or <strong>Codex CLI</strong> — they write files, run commands, and self-correct.</p></div>
+          <div class="card"><div class="ico">⌨️</div><h4>Autocomplete as I code</h4><p>Use <strong>GitHub Copilot</strong> right inside VS Code.</p></div>
+          <div class="card"><div class="ico">🆓</div><h4>Free + big context</h4><p>Use <strong>Gemini CLI</strong> — generous free tier, handles your whole repo at once.</p></div>
+          <div class="card"><div class="ico">📝</div><h4>Write the marketing emails</h4><p>Use <strong>Microsoft 365 Copilot</strong> in Outlook/Word alongside any builder.</p></div>
+        </div>
+      </section>
+
+      <!-- 03 PREREQ -->
+      <section id="prereq">
+        <div class="sec-head"><span class="sec-num">03</span><h2>Prerequisites</h2></div>
+        <p class="section-intro">Install these once. If you get stuck, paste the error into your AI — that's exactly what it's for.</p>
+        <ol>
+          <li><strong>Node.js</strong> (LTS) — <a href="https://nodejs.org" target="_blank" rel="noopener">nodejs.org</a></li>
+          <li><strong>Git</strong> — <a href="https://git-scm.com" target="_blank" rel="noopener">git-scm.com</a></li>
+          <li><strong>VS Code</strong> — the most widely supported editor for these tools</li>
+          <li><strong>An email-sending API key</strong> — sign up at Resend / SendGrid / SES</li>
+          <li><strong>A domain</strong> — for production sending + deliverability (you'll add DNS records later)</li>
+        </ol>
+        <p>Then create your project folder:</p>
+        <div class="codewrap"><span class="label label-bash">bash</span><pre>mkdir lead-campaign-app && cd lead-campaign-app
+git init</pre></div>
+      </section>
+
+      <!-- 04 MASTER PROMPT -->
+      <section id="master">
+        <div class="sec-head"><span class="sec-num">04</span><h2>The master prompt</h2></div>
+        <p class="section-intro">This one prompt works in <strong>all four tools</strong>. Paste it as your first message. Save it somewhere — you'll reuse it constantly.</p>
+        <div class="codewrap"><span class="label label-prompt">master prompt</span><pre class="prompt">You are my senior full-stack engineer. Build a custom email-campaign web app
+whose goal is to capture and convert more sales leads.
+
+TECH STACK
+- Next.js (App Router) + TypeScript + Tailwind CSS
+- SQLite via Prisma for local dev (make it easy to switch to Postgres later)
+- Resend for sending email (read RESEND_API_KEY from .env)
+
+FEATURES (build incrementally, smallest working version first)
+1. Public landing page with a value proposition headline and an email
+   capture form (name + email). On submit, save the lead and send a
+   welcome email.
+2. A "leads" table: id, name, email, source, tags, status
+   (new | engaged | converted | unsubscribed), createdAt.
+3. Admin dashboard (simple password-protected) showing total leads,
+   new this week, conversion rate, and a list of leads.
+4. Email templates stored as React/HTML with merge tags ({{name}}).
+5. A drip sequence: Day 0 welcome, Day 2 value email, Day 5 offer email.
+   Implement as a scheduled job / cron-friendly endpoint.
+6. Open & click tracking (tracking pixel + redirect links) and an
+   unsubscribe link in every email.
+
+CONSTRAINTS
+- Mobile-responsive, accessible, clean modern UI.
+- Include input validation and basic spam protection (honeypot field).
+- Add a .env.example, a README with run instructions, and seed data.
+- Follow email compliance: physical address + unsubscribe in footer.
+
+PROCESS
+- Propose the file/folder structure first and wait for my "go".
+- Then implement step 1 end-to-end and tell me how to run it before
+  moving on. Explain key decisions briefly.</pre></div>
+        <div class="callout"><span class="ci">⚙️</span><p><strong>Tweak per tool:</strong> for an in-editor agent (Copilot/Gemini) the prompt is identical — just paste it into the chat panel. For the no-code route, swap the stack line for "a single self-contained HTML file that posts to Airtable."</p></div>
+      </section>
+
+      <!-- 05 TOOLS -->
+      <section id="tools">
+        <div class="sec-head"><span class="sec-num">05</span><h2>Build it, tool by tool</h2></div>
+        <p class="section-intro">Pick a tab. Each shows the fastest path from zero to a running app with that assistant.</p>
+
+        <div class="tabs" id="toolTabs">
+          <button class="tab active" data-tab="claude"><span class="tlogo" style="background:#c0492b">C</span><span class="tname">Claude</span></button>
+          <button class="tab" data-tab="codex"><span class="tlogo" style="background:#0c8f6e">O</span><span class="tname">Codex / ChatGPT</span></button>
+          <button class="tab" data-tab="gemini"><span class="tlogo" style="background:#2a6fd6">G</span><span class="tname">Gemini</span></button>
+          <button class="tab" data-tab="copilot"><span class="tlogo" style="background:#5b34c4">M</span><span class="tname">Copilot</span></button>
+        </div>
+
+        <!-- CLAUDE -->
+        <div class="tabpanel active" data-panel="claude">
+          <div class="tool-banner"><div class="big-logo" style="background:#c0492b">C</div><div><h3>Claude (Claude Code)</h3><p>Strongest at building <em>and running</em> the whole project for you.</p></div></div>
+          <h4>Option A — Claude Code (recommended, terminal)</h4>
+          <ol class="steps">
+            <li><strong>Install</strong><div class="codewrap"><span class="label label-bash">bash</span><pre>npm install -g @anthropic-ai/claude-code</pre></div></li>
+            <li><strong>Start it in your project folder</strong><div class="codewrap"><span class="label label-bash">bash</span><pre>cd lead-campaign-app
+claude</pre></div></li>
+            <li><strong>Paste the master prompt.</strong> Claude proposes a file structure — type <code>go</code>.</li>
+            <li><strong>Let it build.</strong> It writes files, installs deps, and runs the dev server. Approve commands as prompted.</li>
+            <li><strong>Iterate by talking to it:</strong>
+              <div class="codewrap"><span class="label label-prompt">prompt</span><pre class="prompt">Add A/B testing for subject lines and show open-rate per variant.
+The welcome email looks plain — match brand color #1a73e8 and add a CTA button.
+Write tests for the lead-capture API and run them.</pre></div>
+            </li>
+            <li><strong>Make it verify itself:</strong>
+              <div class="codewrap"><span class="label label-prompt">prompt</span><pre class="prompt">Run the app, open the landing page, submit a test lead, and confirm
+the welcome email is queued.</pre></div>
+            </li>
+            <li><strong>Deploy:</strong> <code>Set this up to deploy to Vercel and walk me through connecting Postgres.</code></li>
+          </ol>
+          <h4>Option B — Claude.ai (browser, no install)</h4>
+          <p>Paste the master prompt at <a href="https://claude.ai" target="_blank" rel="noopener">claude.ai</a>; copy files into your editor, or use <strong>Artifacts</strong> for an instant live preview of the landing page.</p>
+          <h4>Option C — Claude API (make the app itself smart)</h4>
+          <p>Use the Claude API <em>inside</em> your app to auto-write personalized follow-ups per lead. Ask: <em>"Add an endpoint that calls the Claude API to draft a personalized follow-up from the lead's name and source, with prompt caching enabled."</em></p>
+        </div>
+
+        <!-- CODEX -->
+        <div class="tabpanel" data-panel="codex">
+          <div class="tool-banner"><div class="big-logo" style="background:#0c8f6e">O</div><div><h3>OpenAI Codex / ChatGPT</h3><p>Two complementary tools — a coding agent and a reasoning partner.</p></div></div>
+          <h4>Option A — Codex CLI (agentic terminal, closest to Claude Code)</h4>
+          <ol class="steps">
+            <li><strong>Install</strong><div class="codewrap"><span class="label label-bash">bash</span><pre>npm install -g @openai/codex
+# or: brew install codex</pre></div></li>
+            <li><strong>Sign in</strong> with your ChatGPT account or an API key.</li>
+            <li><strong>Run in your project</strong><div class="codewrap"><span class="label label-bash">bash</span><pre>cd lead-campaign-app
+codex</pre></div></li>
+            <li><strong>Paste the master prompt.</strong> Codex plans, writes files, and runs commands — approve as it goes.</li>
+            <li><strong>Iterate</strong> in plain English, same as Claude.</li>
+            <li><strong>Cloud / PR workflow:</strong> from chatgpt.com/codex, point it at a GitHub repo and ask it to "open a pull request that adds click-tracking." Review before merging.</li>
+          </ol>
+          <h4>Option B — ChatGPT (browser, GPT-5)</h4>
+          <p>Paste the master prompt at <a href="https://chatgpt.com" target="_blank" rel="noopener">chatgpt.com</a>; use <strong>Canvas</strong> to edit code side-by-side. Great for architecture debates and pasting errors to debug.</p>
+          <div class="callout tip"><span class="ci">🔗</span><p><strong>Combo move:</strong> plan the architecture in ChatGPT, then hand the plan to Codex CLI to implement.</p></div>
+        </div>
+
+        <!-- GEMINI -->
+        <div class="tabpanel" data-panel="gemini">
+          <div class="tool-banner"><div class="big-logo" style="background:#2a6fd6">G</div><div><h3>Google Gemini</h3><p>Free tier, very large context window, and true multimodal input.</p></div></div>
+          <h4>Option A — Gemini CLI (agentic terminal)</h4>
+          <ol class="steps">
+            <li><strong>Install</strong><div class="codewrap"><span class="label label-bash">bash</span><pre>npm install -g @google/gemini-cli</pre></div></li>
+            <li><strong>Run &amp; authenticate</strong> (sign in with Google for the free tier)<div class="codewrap"><span class="label label-bash">bash</span><pre>cd lead-campaign-app
+gemini</pre></div></li>
+            <li><strong>Paste the master prompt.</strong> Gemini scaffolds, edits files, and runs commands.</li>
+            <li><strong>Use its big context:</strong> <code>Audit every email template for unsubscribe links and add any that are missing.</code></li>
+            <li><strong>Use multimodal:</strong> drop in a screenshot — <em>"Make my landing page look like this reference image"</em> — and it matches the layout.</li>
+          </ol>
+          <h4>Option B — Google AI Studio (browser)</h4>
+          <p>At <a href="https://aistudio.google.com" target="_blank" rel="noopener">aistudio.google.com</a>, paste the prompt and iterate; use the app-prototyping features for a runnable preview, then export the code.</p>
+        </div>
+
+        <!-- COPILOT -->
+        <div class="tabpanel" data-panel="copilot">
+          <div class="tool-banner"><div class="big-logo" style="background:#5b34c4">M</div><div><h3>Microsoft Copilot</h3><p>Two products — use both for different jobs.</p></div></div>
+          <h4>Option A — GitHub Copilot (in your editor)</h4>
+          <ol class="steps">
+            <li><strong>Install</strong> the <em>GitHub Copilot</em> + <em>Copilot Chat</em> extensions in VS Code.</li>
+            <li><strong>Open Copilot Chat</strong> and switch to <strong>Agent mode</strong> for multi-file tasks.</li>
+            <li><strong>Paste the master prompt</strong> into Agent mode — it creates files and runs terminal commands.</li>
+            <li><strong>Inline autocomplete:</strong> write a comment, press Tab:
+              <div class="codewrap"><span class="label label-code">ts</span><pre>// POST /api/leads — validate email, save lead, send welcome email via Resend</pre></div>
+            </li>
+            <li><strong>Slash commands:</strong> <code>/tests</code>, <code>/fix</code>, <code>/explain</code> on selected code.</li>
+          </ol>
+          <h4>Option B — Microsoft 365 Copilot (campaign content &amp; ops)</h4>
+          <p>Where Microsoft shines for a lead campaign specifically:</p>
+          <ul>
+            <li><strong>Outlook Copilot:</strong> draft, refine &amp; personalize the emails; "summarize replies from leads this week."</li>
+            <li><strong>Word Copilot:</strong> write the lead magnet (guide/ebook) you trade for the email.</li>
+            <li><strong>Excel Copilot:</strong> "show conversion rate by source and chart the top 5" on your leads export.</li>
+            <li><strong>Copilot Studio:</strong> build a no-code site chatbot that captures leads conversationally.</li>
+          </ul>
+          <div class="callout tip"><span class="ci">✂️</span><p><strong>Practical split:</strong> build the <em>app</em> with GitHub Copilot, write the <em>emails &amp; analyze results</em> with M365 Copilot.</p></div>
+        </div>
+      </section>
+
+      <!-- 06 BLUEPRINT -->
+      <section id="blueprint">
+        <div class="sec-head"><span class="sec-num">06</span><h2>The app blueprint</h2></div>
+        <p class="section-intro">Use this to sanity-check whatever the AI generates.</p>
+        <h3>File structure</h3>
+        <div class="codewrap"><span class="label label-code">tree</span><pre class="ascii">lead-campaign-app/
+├─ app/
+│  ├─ page.tsx                 # Landing page + capture form
+│  ├─ api/
+│  │  ├─ leads/route.ts        # POST: create lead, send welcome
+│  │  ├─ track/open/route.ts   # GET: tracking pixel
+│  │  ├─ track/click/route.ts  # GET: click redirect + log
+│  │  ├─ unsubscribe/route.ts  # GET: one-click unsubscribe
+│  │  └─ cron/drip/route.ts    # Scheduled: send next drip email
+│  └─ dashboard/page.tsx       # Admin metrics + lead list
+├─ emails/
+│  ├─ welcome.tsx              # Day 0
+│  ├─ value.tsx                # Day 2
+│  └─ offer.tsx                # Day 5
+├─ lib/
+│  ├─ db.ts                    # Prisma client
+│  ├─ mailer.ts               # Resend wrapper + merge tags
+│  └─ tracking.ts             # pixel + link helpers
+├─ prisma/schema.prisma        # Lead, EmailEvent models
+├─ .env.example
+└─ README.md</pre></div>
+
+        <h3>Data model (minimum)</h3>
+        <div class="codewrap"><span class="label label-code">prisma</span><pre>model Lead {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  source    String?  // e.g. "facebook-ad", "homepage"
+  tags      String?  // comma-separated
+  status    String   @default("new") // new|engaged|converted|unsubscribed
+  createdAt DateTime @default(now())
+  events    EmailEvent[]
+}
+
+model EmailEvent {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id])
+  type      String   // sent|opened|clicked|converted
+  emailKey  String   // welcome|value|offer
+  createdAt DateTime @default(now())
+}</pre></div>
+
+        <h3>The lead-conversion loop</h3>
+        <div class="codewrap"><span class="label label-code">flow</span><pre class="ascii">Visitor → Landing page → Submit form → Lead saved (status: new)
+   → Welcome email (Day 0) → opens/clicks tracked (status: engaged)
+   → Value email (Day 2) → Offer email (Day 5)
+   → Clicks offer / books call → status: converted → notify you</pre></div>
+      </section>
+
+      <!-- 07 COPY -->
+      <section id="copy">
+        <div class="sec-head"><span class="sec-num">07</span><h2>Writing the emails</h2></div>
+        <p class="section-intro">A great app sends mediocre results without great copy. Claude, ChatGPT, Gemini, and M365 Copilot are all strong writers — feed any of them this prompt:</p>
+        <div class="codewrap"><span class="label label-prompt">email sequence prompt</span><pre class="prompt">Write a 3-email lead-nurture sequence for [YOUR PRODUCT/SERVICE].
+Audience: [who they are and their main pain point].
+Goal: get them to [book a demo / start a free trial / reply].
+Tone: helpful, concise, no hype.
+
+Email 1 (Day 0, Welcome): thank them, set expectations, deliver the
+  lead magnet, one soft CTA.
+Email 2 (Day 2, Value): teach one useful tip that builds trust, light CTA.
+Email 3 (Day 5, Offer): make a clear, time-bound offer with a single CTA.
+
+For each: give 3 subject-line options, preview text, and body with a
+{{name}} merge tag. Keep each under 150 words. Plain, scannable formatting.</pre></div>
+        <h3>High-converting email tips</h3>
+        <div class="grid grid-2">
+          <div class="card"><div class="ico">🎯</div><h4>One CTA per email</h4><p>Every email asks for exactly one action. Choices kill conversions.</p></div>
+          <div class="card"><div class="ico">🧪</div><h4>A/B the subject line</h4><p>Short, specific, benefit- or curiosity-driven. Test two, keep the winner.</p></div>
+          <div class="card"><div class="ico">👤</div><h4>Personalize beyond the name</h4><p>Reference their <code>source</code> — "Saw you came from our pricing guide…"</p></div>
+          <div class="card"><div class="ico">📱</div><h4>Mobile-first</h4><p>Short paragraphs, one big tappable button. Most opens are on phones.</p></div>
+        </div>
+      </section>
+
+      <!-- 08 COMPLIANCE -->
+      <section id="compliance">
+        <div class="sec-head"><span class="sec-num">08</span><h2>Compliance &amp; deliverability</h2></div>
+        <p class="section-intro">Ask your AI to bake these in. They protect your sender reputation and keep you legal.</p>
+
+        <h3>Legal — CAN-SPAM / GDPR / CASL</h3>
+        <ul>
+          <li>✅ A working <strong>unsubscribe</strong> link in every email (honor within 10 days)</li>
+          <li>✅ A real <strong>physical mailing address</strong> in the footer</li>
+          <li>✅ No deceptive subject lines or "from" names</li>
+          <li>✅ For EU/Canada contacts, get <strong>opt-in consent</strong> before emailing — and record it</li>
+        </ul>
+
+        <h3>Deliverability — reach the inbox, not spam</h3>
+        <ul>
+          <li>Set up <strong>SPF, DKIM, and DMARC</strong> DNS records for your sending domain</li>
+          <li>Warm up a new domain gradually — don't blast thousands on day one</li>
+          <li>Keep lists clean: auto-remove hard bounces and unsubscribes</li>
+        </ul>
+        <div class="callout tip"><span class="ci">🧭</span><p>Ask your AI: <em>"Walk me through adding SPF/DKIM/DMARC for Resend on my domain."</em></p></div>
+
+        <h3>Test before launch</h3>
+        <ul>
+          <li>Send tests to yourself across Gmail, Outlook, and mobile</li>
+          <li>Score spamminess at <a href="https://www.mail-tester.com" target="_blank" rel="noopener">mail-tester.com</a> (aim for 9+/10)</li>
+          <li>Verify the tracking pixel and unsubscribe actually fire</li>
+        </ul>
+        <div class="codewrap"><span class="label label-prompt">prompt</span><pre class="prompt">Add a /api/test-send endpoint that sends each template to my address
+with sample merge data, and a script to run it.</pre></div>
+      </section>
+
+      <!-- 09 CHECKLIST -->
+      <section id="checklist">
+        <div class="sec-head"><span class="sec-num">09</span><h2>Launch checklist</h2></div>
+        <p class="section-intro">Tick these off before you send to real leads. Your progress is saved in this browser.</p>
+        <div class="progress-note" id="checkNote">0 of 10 complete</div>
+        <ul class="checklist" id="launchList">
+          <li><label><input type="checkbox"><span class="box">✓</span><span class="ctext">Landing page live and mobile-responsive</span></label></li>
+          <li><label><input type="checkbox"><span class="box">✓</span><span class="ctext">Form saves leads + sends welcome email</span></label></li>
+          <li><label><input type="checkbox"><span class="box">✓</span><span class="ctext">All 3 drip emails written, tested, and scheduled</span></label></li>
+          <li><label><input type="checkbox"><span class="box">✓</span><span class="ctext">Open / click / unsubscribe tracking verified</span></label></li>
+          <li><label><input type="checkbox"><span class="box">✓</span><span class="ctext">SPF / DKIM / DMARC configured; mail-tester 9+/10</span></label></li>
+          <li><label><input type="checkbox"><span class="box">✓</span><span class="ctext">Unsubscribe + physical address in every footer</span></label></li>
+          <li><label><input type="checkbox"><span class="box">✓</span><span class="ctext">Dashboard shows leads + conversion rate</span></label></li>
+          <li><label><input type="checkbox"><span class="box">✓</span><span class="ctext">Production env vars set (no secrets in code)</span></label></li>
+          <li><label><input type="checkbox"><span class="box">✓</span><span class="ctext">Deployed (Vercel/Netlify) with production database</span></label></li>
+          <li><label><input type="checkbox"><span class="box">✓</span><span class="ctext">Sent to a small test cohort before the full list</span></label></li>
+        </ul>
+        <button class="reset-link" id="resetCheck">Reset checklist</button>
+      </section>
+
+      <!-- 10 LIBRARY -->
+      <section id="library">
+        <div class="sec-head"><span class="sec-num">10</span><h2>Prompt library</h2></div>
+        <p class="section-intro">Copy-paste prompts for the whole lifecycle. Filter to find what you need.</p>
+        <input type="text" class="lib-search" id="libSearch" placeholder="🔍 Filter prompts… (e.g. debug, UI, analyze)" />
+        <div id="libList">
+          <div class="lib-card"><h4><span class="tag">Build</span> Scaffold the project</h4>
+            <div class="codewrap"><span class="label label-prompt">prompt</span><pre class="prompt">Use the master prompt from section 04.</pre></div></div>
+
+          <div class="lib-card"><h4><span class="tag">Feature</span> Add A/B testing</h4>
+            <div class="codewrap"><span class="label label-prompt">prompt</span><pre class="prompt">Add subject-line A/B testing: send variant A to half of new leads and
+variant B to the other half, record opens per variant, and show the
+winner on the dashboard. Implement, then run the app and confirm it works.</pre></div></div>
+
+          <div class="lib-card"><h4><span class="tag">UI</span> Improve the landing page</h4>
+            <div class="codewrap"><span class="label label-prompt">prompt</span><pre class="prompt">Redesign the landing page to maximize signups: strong above-the-fold
+headline, social proof, a single email field with one clear CTA button,
+and a trust line about no spam. Keep it fast and accessible.</pre></div></div>
+
+          <div class="lib-card"><h4><span class="tag">Debug</span> Fix an error</h4>
+            <div class="codewrap"><span class="label label-prompt">prompt</span><pre class="prompt">Here's the error when I submit the form: [paste error + stack trace].
+Find the root cause, fix it, and add a test that would have caught it.</pre></div></div>
+
+          <div class="lib-card"><h4><span class="tag">Analyze</span> Crunch the results</h4>
+            <div class="codewrap"><span class="label label-prompt">prompt</span><pre class="prompt">Here is my leads export [paste/attach CSV]. Calculate conversion rate by
+source, identify the best-performing subject line, and suggest 3 changes
+to increase conversions next week.</pre></div></div>
+
+          <div class="lib-card"><h4><span class="tag">Content</span> Generate the lead magnet</h4>
+            <div class="codewrap"><span class="label label-prompt">prompt</span><pre class="prompt">Write a concise, genuinely useful 5-page guide titled "[topic]" that my
+target audience would trade their email for. Include a one-line hook I
+can put on the landing page.</pre></div></div>
+
+          <div class="lib-card"><h4><span class="tag">Deploy</span> Ship to production</h4>
+            <div class="codewrap"><span class="label label-prompt">prompt</span><pre class="prompt">Set this up to deploy to Vercel. Move the database from SQLite to a
+hosted Postgres (Neon or Supabase), add the production env vars, and
+give me the exact commands and DNS records I need.</pre></div></div>
+
+          <div class="lib-card"><h4><span class="tag">Compliance</span> Deliverability setup</h4>
+            <div class="codewrap"><span class="label label-prompt">prompt</span><pre class="prompt">Walk me through adding SPF, DKIM, and DMARC for my sending domain with
+Resend, then add a /api/test-send endpoint and tell me how to score it
+on mail-tester.com.</pre></div></div>
+        </div>
+      </section>
+
+      <!-- 11 HOST -->
+      <section id="host">
+        <div class="sec-head"><span class="sec-num">11</span><h2>Host this guide on GitHub Pages</h2></div>
+        <p class="section-intro">This page is a single self-contained <code>index.html</code> — no build step. Publish it free in three commands.</p>
+        <ol class="steps">
+          <li><strong>Create a repo &amp; push</strong> (run inside this folder)
+            <div class="codewrap"><span class="label label-bash">bash</span><pre>git init
+git add index.html
+git commit -m "Add Lead Engine field guide"
+git branch -M main
+git remote add origin https://github.com/&lt;you&gt;/lead-engine-guide.git
+git push -u origin main</pre></div>
+          </li>
+          <li><strong>Turn on Pages:</strong> on GitHub → <em>Settings → Pages</em> → Source: <em>Deploy from a branch</em> → Branch: <code>main</code> / <code>(root)</code> → Save.</li>
+          <li><strong>Visit your site</strong> at <code>https://&lt;you&gt;.github.io/lead-engine-guide/</code> (live in ~1 minute).</li>
+        </ol>
+        <div class="callout tip"><span class="ci">⚡</span><p><strong>One-command alternative</strong> (with the GitHub CLI installed):</p></div>
+        <div class="codewrap"><span class="label label-bash">bash</span><pre>gh repo create lead-engine-guide --public --source=. --push
+gh api -X POST repos/:owner/lead-engine-guide/pages -f source[branch]=main -f source[path]=/</pre></div>
+        <div class="callout"><span class="ci">📁</span><p>If your file isn't named <code>index.html</code>, rename it so GitHub Pages serves it as the homepage automatically.</p></div>
+      </section>
+
+    </div><!-- /container -->
+
+    <footer>
+      <div class="fbrand">The Lead Engine</div>
+      <p>A free field guide for building AI-powered lead-gen campaigns.<br />Fork it, edit it, ship it. Start small — one real lead through the full loop, then expand.</p>
+    </footer>
+  </main>
+</div>
+
+<button id="toTop" aria-label="Back to top">↑</button>
+
+<script>
+/* ============================ THEME ============================ */
+(function(){
+  const root = document.documentElement;
+  const saved = localStorage.getItem('le-theme');
+  const sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const start = saved || (sysDark ? 'dark' : 'light');
+  root.setAttribute('data-theme', start);
+  const btn = document.getElementById('themeBtn');
+  const icon = document.getElementById('themeIcon');
+  const label = document.getElementById('themeLabel');
+  function sync(){
+    const dark = root.getAttribute('data-theme') === 'dark';
+    icon.textContent = dark ? '☀️' : '🌙';
+    label.textContent = dark ? 'Light' : 'Dark';
+  }
+  sync();
+  btn.addEventListener('click', ()=>{
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    localStorage.setItem('le-theme', next);
+    sync();
+  });
+  document.getElementById('printBtn').addEventListener('click', ()=>window.print());
+})();
+
+/* ============================ COPY BUTTONS ============================ */
+document.querySelectorAll('.codewrap').forEach(wrap=>{
+  const pre = wrap.querySelector('pre');
+  if(!pre) return;
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.innerHTML = '⧉ Copy';
+  wrap.appendChild(btn);
+  btn.addEventListener('click', async ()=>{
+    const text = pre.innerText;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch(e) {
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); ta.remove();
+    }
+    btn.classList.add('copied');
+    btn.innerHTML = '✓ Copied';
+    setTimeout(()=>{ btn.classList.remove('copied'); btn.innerHTML = '⧉ Copy'; }, 1600);
+  });
+});
+
+/* ============================ TABS ============================ */
+const tabs = document.querySelectorAll('#toolTabs .tab');
+const panels = document.querySelectorAll('.tabpanel');
+tabs.forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    tabs.forEach(t=>t.classList.remove('active'));
+    panels.forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelector(`.tabpanel[data-panel="${tab.dataset.tab}"]`).classList.add('active');
+  });
+});
+
+/* ============================ SCROLLSPY + PROGRESS ============================ */
+const sections = Array.from(document.querySelectorAll('section, header.hero'));
+const tocLinks = Array.from(document.querySelectorAll('#toc a'));
+const progress = document.getElementById('progress');
+const toTop = document.getElementById('toTop');
+
+function onScroll(){
+  const scrollTop = window.scrollY;
+  const docH = document.documentElement.scrollHeight - window.innerHeight;
+  progress.style.width = (docH > 0 ? (scrollTop / docH) * 100 : 0) + '%';
+  toTop.classList.toggle('show', scrollTop > 600);
+
+  let current = sections[0]?.id;
+  const probe = scrollTop + 120;
+  for(const s of sections){ if(s.offsetTop <= probe) current = s.id; }
+  tocLinks.forEach(a=>{
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+}
+window.addEventListener('scroll', onScroll, { passive:true });
+window.addEventListener('load', onScroll);
+toTop.addEventListener('click', ()=>window.scrollTo({top:0, behavior:'smooth'}));
+
+/* ============================ MOBILE NAV ============================ */
+const sidebar = document.getElementById('sidebar');
+const scrim = document.getElementById('scrim');
+function closeNav(){ sidebar.classList.remove('open'); scrim.classList.remove('open'); }
+document.getElementById('menuBtn').addEventListener('click', ()=>{
+  sidebar.classList.add('open'); scrim.classList.add('open');
+});
+scrim.addEventListener('click', closeNav);
+tocLinks.forEach(a=>a.addEventListener('click', ()=>{ if(window.innerWidth <= 940) closeNav(); }));
+
+/* ============================ LAUNCH CHECKLIST ============================ */
+(function(){
+  const list = document.getElementById('launchList');
+  const boxes = Array.from(list.querySelectorAll('input'));
+  const note = document.getElementById('checkNote');
+  const KEY = 'le-checklist';
+  const saved = JSON.parse(localStorage.getItem(KEY) || '[]');
+  boxes.forEach((b,i)=>{ if(saved[i]) b.checked = true; });
+  function update(){
+    const done = boxes.filter(b=>b.checked).length;
+    note.textContent = `${done} of ${boxes.length} complete` + (done===boxes.length ? ' — ready to launch! 🚀' : '');
+    localStorage.setItem(KEY, JSON.stringify(boxes.map(b=>b.checked)));
+  }
+  boxes.forEach(b=>b.addEventListener('change', update));
+  document.getElementById('resetCheck').addEventListener('click', ()=>{
+    boxes.forEach(b=>b.checked=false); update();
+  });
+  update();
+})();
+
+/* ============================ PROMPT LIBRARY FILTER ============================ */
+(function(){
+  const search = document.getElementById('libSearch');
+  const cards = Array.from(document.querySelectorAll('#libList .lib-card'));
+  search.addEventListener('input', ()=>{
+    const q = search.value.toLowerCase().trim();
+    cards.forEach(c=>{
+      c.hidden = q && !c.innerText.toLowerCase().includes(q);
+    });
+  });
+})();
+</script>
+</body>
+</html>
