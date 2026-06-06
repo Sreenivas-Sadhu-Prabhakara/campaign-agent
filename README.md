@@ -8,8 +8,17 @@ This repo has two parts:
 
 | Part | Path | What it is |
 |------|------|-----------|
-| 📖 **The guide** | [`index.html`](./index.html) | A polished, copy-paste field guide (hosted on GitHub Pages) |
-| 🛠 **The app** | [`starter/`](./starter) | The actual runnable app — **build-verified** |
+| 📖 **The guide** | [`index.html`](./index.html) | A polished, step-by-step field guide (hosted on GitHub Pages) |
+| 🛠 **The full app** | [`starter/`](./starter) | Multi-channel app (email · WhatsApp · FB · IG) — **build-verified** |
+| 🪶 **No-DB variant** | [`no-db/`](./no-db) | Email-only, **no database, $0** — Google Sheets + Apps Script |
+
+## Two ways to build it
+
+- **Frugal / fastest (`no-db/`)** — no database, no server, no bill. A Google
+  Sheet stores leads, Apps Script runs the form + drip, Gmail sends the emails,
+  and a static page hosts free. Email-only. [Setup →](./no-db/README.md)
+- **Full app (`starter/`)** — adds WhatsApp, Facebook & Instagram, open/click
+  tracking, and a dashboard. Runs on free Vercel + Neon tiers. [Setup →](./starter/README.md)
 
 **Live guide:** https://sreenivas-sadhu-prabhakara.github.io/campaign-agent/
 

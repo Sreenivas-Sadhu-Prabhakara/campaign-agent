@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Get the free guide</title>
+<meta name="description" content="Sign up to get the free guide and a few quick wins." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root { --bg:#fbfaf7; --surface:#fff; --ink:#1c1a17; --ink-soft:#56514a; --line:#e7e2d9; --accent:#c2410c; --ok:#15803d; }
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+    font-family:'Hanken Grotesk',system-ui,sans-serif; background:
+    radial-gradient(60% 80% at 85% 0%, #fbe7da 0%, transparent 55%),
+    radial-gradient(50% 70% at 0% 100%, #e3f3e8 0%, transparent 60%), var(--bg);
+    color:var(--ink); line-height:1.6; }
+  .wrap { display:grid; grid-template-columns:1fr 1fr; gap:44px; max-width:880px; width:100%; align-items:center; }
+  .pitch h1 { font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:clamp(30px,5vw,44px); line-height:1.06; letter-spacing:-.02em; margin:14px 0 16px; }
+  .pitch h1 em { font-style:italic; color:var(--accent); }
+  .eyebrow { display:inline-block; font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); background:#fbe7da; padding:6px 12px; border-radius:100px; }
+  .pitch p { color:var(--ink-soft); font-size:17px; max-width:380px; }
+  .pitch ul { list-style:none; padding:0; margin:18px 0 0; }
+  .pitch li { margin:8px 0; padding-left:26px; position:relative; }
+  .pitch li::before { content:"✓"; position:absolute; left:0; color:var(--ok); font-weight:700; }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:30px; box-shadow:0 10px 40px -16px rgba(28,26,23,.25); }
+  .card h2 { font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:22px; margin:0 0 4px; }
+  .card .sub { color:var(--ink-soft); font-size:14px; margin:0 0 18px; }
+  label { display:block; font-size:13px; font-weight:600; margin:0 0 6px; }
+  input[type=text], input[type=email] { width:100%; padding:12px 14px; font-size:15px; font-family:inherit;
+    border:1px solid #d8d2c7; border-radius:10px; background:#fff; color:var(--ink); margin-bottom:14px; }
+  input:focus { outline:none; border-color:var(--accent); }
+  .hp { position:absolute; left:-9999px; width:1px; height:1px; opacity:0; } /* honeypot */
+  button { width:100%; padding:13px; font-size:15px; font-weight:700; font-family:inherit; color:#fff;
+    background:var(--accent); border:none; border-radius:10px; cursor:pointer; transition:transform .15s ease, opacity .2s; }
+  button:hover { transform:translateY(-1px); }
+  button:disabled { opacity:.6; cursor:default; transform:none; }
+  .fine { text-align:center; font-size:12px; color:#8c857b; margin-top:10px; }
+  .msg { font-size:14px; margin-top:12px; text-align:center; }
+  .msg.err { color:#b91c1c; }
+  .success { text-align:center; padding:18px 6px; }
+  .success .big { font-size:38px; }
+  .success h2 { margin:8px 0 4px; }
+  .success p { color:var(--ink-soft); margin:0; }
+  @media (max-width:680px) { .wrap { grid-template-columns:1fr; gap:26px; } .pitch p { max-width:none; } }
+</style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="pitch">
+      <span class="eyebrow">Free guide</span>
+      <h1>Get more leads — <em>on autopilot.</em></h1>
+      <p>Grab the free guide and we'll send you a short series of quick wins by email. No fluff, unsubscribe anytime.</p>
+      <ul>
+        <li>A proven 3-message follow-up sequence</li>
+        <li>Practical tips you can use this week</li>
+        <li>Set it up once, capture leads 24/7</li>
+      </ul>
+    </section>
+
+    <section class="card" id="card">
+      <h2>Send me the free guide</h2>
+      <p class="sub">Enter your details — it's on its way in seconds.</p>
+      <form id="form" autocomplete="on">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" placeholder="Your name" autocomplete="name" />
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="you@email.com" autocomplete="email" required />
+        <!-- honeypot: hidden from humans, bots fill it -->
+        <input class="hp" type="text" id="website" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
+        <button type="submit" id="btn">Send me the guide →</button>
+        <p class="fine">No spam. Unsubscribe anytime.</p>
+        <p class="msg err" id="msg" hidden></p>
+      </form>
+    </section>
+  </main>
+
+<script>
+  // ====== PASTE YOUR APPS SCRIPT WEB APP URL HERE (ends in /exec) ======
+  const WEBAPP_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
+
+  const form = document.getElementById("form");
+  const btn = document.getElementById("btn");
+  const msg = document.getElementById("msg");
+  const card = document.getElementById("card");
+
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    msg.hidden = true;
+
+    if (WEBAPP_URL.indexOf("PASTE_") === 0) {
+      show("Set WEBAPP_URL in index.html first (see no-db/README.md).");
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Sending…";
+    const payload = {
+      name: document.getElementById("name").value,
+      email: document.getElementById("email").value,
+      website: document.getElementById("website").value, // honeypot
+      source: "landing",
+    };
+
+    try {
+      // text/plain avoids a CORS preflight so the Apps Script response is readable
+      const res = await fetch(WEBAPP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(function () { return { ok: true }; });
+      if (data.ok) {
+        card.innerHTML =
+          '<div class="success"><div class="big">🎉</div>' +
+          "<h2>You're in!</h2><p>Check your inbox for the guide.</p></div>";
+      } else {
+        show(data.error || "Something went wrong. Please try again.");
+        reset();
+      }
+    } catch (err) {
+      show("Network error. Please try again.");
+      reset();
+    }
+  });
+
+  function show(t) { msg.textContent = t; msg.hidden = false; }
+  function reset() { btn.disabled = false; btn.textContent = "Send me the guide →"; }
+</script>
+</body>
+</html>

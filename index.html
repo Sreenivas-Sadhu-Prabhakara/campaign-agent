@@ -224,6 +224,7 @@
     <ul class="reflist" id="reflist">
       <li><a href="#launch">✅ Launch checklist</a></li>
       <li><a href="#cost">💲 What it costs</a></li>
+      <li><a href="#nodb">🪶 No-database variant</a></li>
       <li><a href="#ai">🤖 AI helpers</a></li>
       <li><a href="#prompts">📋 Prompt library</a></li>
     </ul>
@@ -244,6 +245,7 @@
           <span class="factchip">💲 <b>$0</b> to launch</span>
           <span class="factchip">✅ <b>Build-verified</b> code</span>
         </div>
+        <p style="margin-top:18px;font-size:14px;color:var(--ink-soft)">Prefer <strong>zero infrastructure</strong> — nothing to deploy? Skip to the <a href="#nodb">no-database variant →</a></p>
       </div>
     </header>
 
@@ -413,6 +415,30 @@ vercel --prod   # deploy → returns your public URL</pre></div>
           </table>
         </div>
         <div class="check"><span class="ci">💲</span><div><b>Frugal launch:</b> website form + email + organic WhatsApp/DM = <strong>$0</strong>. Add paid Lead Ads only once the funnel converts.</div></div>
+      </section>
+
+      <!-- NO-DB VARIANT -->
+      <section class="step" id="nodb">
+        <div class="step-head"><div class="kicker"><span class="meta-chip free">🪶 even more frugal</span><span class="meta-chip free">💲 truly $0</span><span class="meta-chip">🚫 no database</span></div><h2>No-database variant</h2></div>
+        <p class="lead-p">Want zero infrastructure — nothing to deploy or provision? Use the <strong>Google Sheets + Apps Script</strong> version. The Sheet is your storage, Apps Script runs the form &amp; drip free, Gmail sends the emails, and the landing page hosts free on GitHub Pages.</p>
+        <div class="codewrap"><span class="label label-code">flow</span><pre class="ascii">index.html (form) ──POST──▶ Apps Script ──▶ Google Sheet (storage)
+                               │
+                               ├─▶ welcome email (instant, via Gmail)
+                               └─▶ daily trigger → Day 2 / Day 5 follow-ups</pre></div>
+        <details class="acc">
+          <summary>Set it up in ~10 minutes (free) <span class="chev">›</span></summary>
+          <div class="acc-body">
+            <ol>
+              <li>New Google Sheet → <strong>Extensions → Apps Script</strong>.</li>
+              <li>Paste <code>no-db/Code.gs</code>; edit the CONFIG + COPY blocks for your business.</li>
+              <li>Run <code>installDailyTrigger</code> once (approve permissions) — this creates the sheet and schedules the daily drip.</li>
+              <li><strong>Deploy → New deployment → Web app</strong> (Execute as: Me · Access: Anyone). Copy the <code>/exec</code> URL.</li>
+              <li>Paste that URL into <code>no-db/index.html</code> (<code>WEBAPP_URL</code>) and host the page free on GitHub Pages.</li>
+            </ol>
+            <p class="muted">Trade-offs: no open/click tracking and no WhatsApp/Meta channels; Gmail caps ~100 sends/day. Perfect for validating an offer at $0 — graduate to the full app when you outgrow it.</p>
+          </div>
+        </details>
+        <div class="check"><span class="ci">🪶</span><div><b>Pick this when:</b> you want email-only, the smallest footprint, and $0 forever. Full code + steps live in <code>no-db/</code> — <a href="https://github.com/Sreenivas-Sadhu-Prabhakara/campaign-agent/tree/main/no-db" target="_blank" rel="noopener">view on GitHub</a>.</div></div>
       </section>
 
       <!-- AI HELPERS -->
